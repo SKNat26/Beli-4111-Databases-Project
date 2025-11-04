@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Restaurant</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #000000;
+      color: #ffffff;
+      margin: 40px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ffffff;
+      margin-bottom: 20px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .nav-buttons a {
+      text-decoration: none;
+      color: white;
+      background: #1a1a1a;
+      border: 2px solid #00bfff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-buttons a:hover {
+      background: #00bfff;
+      color: #000;
+      box-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+      transform: translateY(-2px);
+    }
+
+    form {
+      max-width: 500px;
+      margin: 0 auto;
+      background: rgb(48, 47, 47);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
+    }
+
+    label {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    input[type="submit"] {
+      background: #00bfff;
+      border: none;
+      padding: 12px 25px;
+      font-size: 18px;
+      border-radius: 8px;
+      color: #000;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    input[type="submit"]:hover {
+      background: #0099cc;
+      box-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+      transform: translateY(-2px);
+    }
+
+    .message {
+      text-align: center;
+      color: #ff8080;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Add a New Restaurant</h1>
+
+  <div class="nav-buttons">
+    <a href="/">View Reviews</a>
+    <a href="/restaurant">View Restaurants</a>
+    <a href="/add_review">Add Review</a>
+    <a href="/logout">Log Out</a>
+  </div>
+
+  <form method="POST" action="/add_restaurant">
+    <label for="name">Restaurant Name:</label>
+    <input type="text" name="name" id="name" required>
+
+    <label for="address">Address:</label>
+    <input type="text" name="address" id="address" required>
+
+    <label for="cuisine">Cuisine Type:</label>
+    <input type="text" name="cuisine" id="cuisine">
+
+    <input type="submit" value="Add Restaurant">
+  </form>
+
+  {% if message %}
+    <script>alert("{{ message }}");</script>
+  {% endif %}
+</body>
+</html>

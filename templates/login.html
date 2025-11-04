@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #000000;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: rgb(48, 47, 47);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 191, 255, 0.5);
+      width: 350px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      color: #00bfff;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+    }
+
+    input[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: #00bfff;
+      border: none;
+      border-radius: 6px;
+      color: #000;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #009acd;
+      transform: translateY(-2px);
+    }
+
+    .message {
+      color: #ff5555;
+      margin-bottom: 10px;
+    }
+
+    .register-link {
+      margin-top: 15px;
+      display: block;
+      color: #00bfff;
+      text-decoration: none;
+    }
+
+    .register-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Login</h1>
+    {% if message %}
+      <div class="message">{{ message }}</div>
+    {% endif %}
+    <form method="POST">
+      <input type="text" name="username" placeholder="Username" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <input type="submit" value="Login">
+    </form>
+    <a href="/register" class="register-link">Register</a>
+  </div>
+</body>
+</html>
