@@ -200,21 +200,55 @@ def restaurant():
     user_id = request.cookies.get('user_id')
 
     if user_id:
-        restaurant_general_info = """
-            SELECT name, address, cuisine
-            FROM Restaurant
+        search_term = request.args.get('search', '').strip()
+        min_rating = request.args.get('rating', '')
+
+        restaurant_query = """
+            SELECT 
+                r.restaurant_id,
+                r.name, 
+                r.address, 
+                r.cuisine,
+                COALESCE(ROUND(AVG(rev.rating)::numeric, 1), 0) as avg_rating,
+                COUNT(rev.review_id) as review_count
+            FROM Restaurant r
+            LEFT JOIN Review rev ON r.restaurant_id = rev.restaurant_id
         """
-        cursor = g.conn.execute(text(restaurant_general_info))
+        
+        where_clauses = []
+        params = {}
+        
+        if search_term:
+            where_clauses.append("LOWER(r.name) LIKE LOWER(:search)")
+            params['search'] = f"%{search_term}%"
+        
+        if where_clauses:
+            restaurant_query += " WHERE " + " AND ".join(where_clauses)
+        
+        restaurant_query += """
+            GROUP BY r.restaurant_id, r.name, r.address, r.cuisine
+        """
+        
+        if min_rating:
+            restaurant_query += " HAVING COALESCE(AVG(rev.rating), 0) >= :min_rating"
+            params['min_rating'] = float(min_rating)
+        
+        restaurant_query += " ORDER BY avg_rating DESC, r.name ASC"
+        
+        cursor = g.conn.execute(text(restaurant_query), params)
         restaurants = []
         for result in cursor:
             restaurants.append({
-                "name": result[0],
-                "address": result[1],
-                "cuisine": result[2]
+                "id": result[0],
+                "name": result[1],
+                "address": result[2],
+                "cuisine": result[3],
+                "avg_rating": result[4],
+                "review_count": result[5]
             })
         cursor.close()
 
-        context = dict(data = restaurants)
+        context = dict(data=restaurants)
 
         return render_template("restaurant.html", **context)
     else:

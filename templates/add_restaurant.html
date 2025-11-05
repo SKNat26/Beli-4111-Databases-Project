@@ -64,6 +64,7 @@
       border: none;
       margin-bottom: 20px;
       font-size: 16px;
+      box-sizing: border-box;
     }
 
     input[type="submit"] {
@@ -75,6 +76,7 @@
       color: #000;
       cursor: pointer;
       transition: all 0.3s ease;
+      width: 100%;
     }
 
     input[type="submit"]:hover {
@@ -94,7 +96,8 @@
   <h1>Add a New Restaurant</h1>
 
   <div class="nav-buttons">
-    <a href="/">View Reviews</a>
+    <a href="/">🏠 Home</a>
+    <a href="/add_restaurant">➕ Add Restaurant</a>
     <a href="/restaurant">View Restaurants</a>
     <a href="/add_review">Add Review</a>
     <a href="/logout">Log Out</a>
