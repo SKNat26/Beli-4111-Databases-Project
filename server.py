@@ -3,7 +3,7 @@
 Columbia's COMS W4111.001 Introduction to Databases
 Example Webserver
 To run locally:
-    python server.py
+    python/python3 server.py
 Go to http://localhost:8111 in your browser.
 A debugger such as "pdb" may be helpful for debugging.
 Read about it online.
@@ -31,9 +31,11 @@ app = Flask(__name__, template_folder=tmpl_dir)
 #     DATABASEURI = "postgresql://ab1234:123123@34.139.8.30/proj1part2"
 #
 # Modify these with your own credentials you received from TA!
-DATABASE_USERNAME = "ay2666"
-DATABASE_PASSWRD = "banana2006"
-DATABASE_HOST = "34.139.8.30"
+from dotenv import load_dotenv
+load_dotenv()
+DATABASE_USERNAME = os.getenv('USERNAME')
+DATABASE_PASSWRD = os.getenv('PASSWRD')
+DATABASE_HOST = os.getenv('HOST')
 DATABASEURI = f"postgresql://{DATABASE_USERNAME}:{DATABASE_PASSWRD}@{DATABASE_HOST}/proj1part2"
 
 
