@@ -279,9 +279,9 @@ def add_restaurant():
                 return redirect('/restaurant')
             except Exception as e:
                 print(str(e))
-                message = "Restaurant Add Failed"
-        
-        return render_template("add_restaurant.html", message = message)
+                message = f"Restaurant Add Failed: {str(e)}"
+
+        return render_template("add_restaurant.html", message=message)
     else:
         return redirect('/login')
 
@@ -322,9 +322,9 @@ def add_review():
                 return redirect('/')
             except Exception as e:
                 print(e)
-                message = 'Review Submission Failed'
+                message = f'Review Submission Failed: {str(e)}'
 
-        return render_template("add_review.html", **context, message = message)
+        return render_template("add_review.html", **context, message=message)
     else:
         return redirect('/login')
 
@@ -377,8 +377,307 @@ def register():
             return redirect('/login')
         except Exception as e:
             print(str(e))
-            message="Registration Failed"
+            message=f"Registration Failed: {str(e)}"
     return render_template('register.html', message=message)
+
+@app.route('/dishes', methods=['GET'])
+def dishes():
+    user_id = request.cookies.get('user_id')
+
+    if user_id:
+        search_term = request.args.get('search', '').strip()
+        restaurant_filter = request.args.get('restaurant', '')
+        allergen_exclude = request.args.get('allergen', '')
+
+        dish_query = """
+            SELECT DISTINCT
+                d.dish_id,
+                d.name,
+                d.description,
+                s.price,
+                r.name as restaurant_name,
+                r.restaurant_id
+            FROM Dish d
+            JOIN Serves s ON d.dish_id = s.dish_id
+            JOIN Restaurant r ON s.restaurant_id = r.restaurant_id
+        """
+        
+        where_clauses = []
+        params = {}
+        
+        if search_term:
+            where_clauses.append("LOWER(d.name) LIKE LOWER(:search)")
+            params['search'] = f"%{search_term}%"
+        
+        if restaurant_filter:
+            where_clauses.append("r.restaurant_id = :restaurant_id")
+            params['restaurant_id'] = int(restaurant_filter)
+        
+        if allergen_exclude:
+            where_clauses.append("""
+                d.dish_id NOT IN (
+                    SELECT dish_id 
+                    FROM Contains 
+                    WHERE allergen_id = :allergen_id
+                )
+            """)
+            params['allergen_id'] = int(allergen_exclude)
+        
+        if where_clauses:
+            dish_query += " WHERE " + " AND ".join(where_clauses)
+        
+        dish_query += " ORDER BY r.name ASC, d.name ASC"
+        
+        cursor = g.conn.execute(text(dish_query), params)
+        dishes_list = []
+        
+        for result in cursor:
+            dish_id = result[0]
+            
+            allergen_query = """
+                SELECT a.allergen_name
+                FROM Contains c
+                JOIN Allergens a ON c.allergen_id = a.allergen_id
+                WHERE c.dish_id = :dish_id
+                ORDER BY a.allergen_name
+            """
+            allergen_cursor = g.conn.execute(text(allergen_query), {"dish_id": dish_id})
+            allergens = [row[0] for row in allergen_cursor]
+            allergen_cursor.close()
+            
+            dishes_list.append({
+                "dish_id": result[0],
+                "name": result[1],
+                "description": result[2],
+                "price": result[3],
+                "restaurant": result[4],
+                "restaurant_id": result[5],
+                "allergens": allergens
+            })
+        cursor.close()
+
+        restaurant_list_query = """
+            SELECT DISTINCT restaurant_id, name
+            FROM Restaurant
+            ORDER BY name
+        """
+        rest_cursor = g.conn.execute(text(restaurant_list_query))
+        restaurants = [{"restaurant_id": row[0], "name": row[1]} for row in rest_cursor]
+        rest_cursor.close()
+
+        allergen_list_query = """
+            SELECT allergen_id, allergen_name
+            FROM Allergens
+            ORDER BY allergen_name
+        """
+        allergen_cursor = g.conn.execute(text(allergen_list_query))
+        allergens = [{"allergen_id": row[0], "allergen_name": row[1]} for row in allergen_cursor]
+        allergen_cursor.close()
+
+        context = dict(
+            data=dishes_list,
+            restaurants=restaurants,
+            allergens=allergens
+        )
+
+        return render_template("dishes.html", **context)
+    else:
+        return redirect('/login')
+    
+
+@app.route('/restaurant/<int:restaurant_id>', methods=['GET'])
+def restaurant_info(restaurant_id):
+    user_id = request.cookies.get('user_id')
+
+    if user_id:
+        restaurant_query = """
+            SELECT 
+                r.restaurant_id,
+                r.name, 
+                r.address, 
+                r.cuisine,
+                COALESCE(ROUND(AVG(rev.rating)::numeric, 1), 0) as avg_rating,
+                COUNT(rev.review_id) as review_count
+            FROM Restaurant r
+            LEFT JOIN Review rev ON r.restaurant_id = rev.restaurant_id
+            WHERE r.restaurant_id = :restaurant_id
+            GROUP BY r.restaurant_id, r.name, r.address, r.cuisine
+        """
+        
+        cursor = g.conn.execute(text(restaurant_query), {"restaurant_id": restaurant_id})
+        result = cursor.fetchone()
+        cursor.close()
+        
+        if not result:
+            abort(404)
+        
+        restaurant = {
+            "restaurant_id": result[0],
+            "name": result[1],
+            "address": result[2],
+            "cuisine": result[3],
+            "avg_rating": result[4],
+            "review_count": result[5]
+        }
+
+        dishes_query = """
+            SELECT 
+                d.dish_id,
+                d.name,
+                d.description,
+                s.price
+            FROM Dish d
+            JOIN Serves s ON d.dish_id = s.dish_id
+            WHERE s.restaurant_id = :restaurant_id
+            ORDER BY d.name ASC
+        """
+        
+        cursor = g.conn.execute(text(dishes_query), {"restaurant_id": restaurant_id})
+        dishes = []
+        
+        for result in cursor:
+            dish_id = result[0]
+            
+            allergen_query = """
+                SELECT a.allergen_name
+                FROM Contains c
+                JOIN Allergens a ON c.allergen_id = a.allergen_id
+                WHERE c.dish_id = :dish_id
+                ORDER BY a.allergen_name
+            """
+            cursor = g.conn.execute(text(allergen_query), {"dish_id": dish_id})
+            allergens = [row[0] for row in cursor]
+            cursor.close()
+
+            dishes.append({
+                "dish_id": result[0],
+                "name": result[1],
+                "description": result[2],
+                "price": result[3],
+                "allergens": allergens
+            })
+        cursor.close()
+
+        reviews_query = """
+            SELECT 
+                u.username AS user, 
+                r.rating AS rating, 
+                r.text_content AS text, 
+                r.timestamp AS timestamp
+            FROM Review r
+            LEFT JOIN "User" u ON r.user_id = u.user_id
+            WHERE r.restaurant_id = :restaurant_id
+            ORDER BY r.timestamp DESC
+        """
+        cursor = g.conn.execute(text(reviews_query), {"restaurant_id": restaurant_id})
+        reviews = []
+        for result in cursor:
+            reviews.append({
+                "user": result[0],
+                "rating": result[1],
+                "text": result[2],
+                "timestamp": result[3]
+            })
+        cursor.close()
+
+        context = dict(
+            restaurant=restaurant,
+            dishes=dishes,
+            reviews=reviews
+        )
+
+        return render_template("restaurant_info.html", **context)
+    else:
+        return redirect('/login')
+    
+@app.route('/add_dish', methods=['GET', 'POST'])
+def add_dish():
+    user_id = request.cookies.get('user_id')
+
+    if user_id:
+        restaurant_query = """
+            SELECT restaurant_id, name
+            FROM Restaurant
+            ORDER BY name
+        """
+        cursor = g.conn.execute(text(restaurant_query))
+        restaurants = []
+        for result in cursor:
+            restaurants.append({
+                "restaurant_id": result[0],
+                "name": result[1]
+            })
+        cursor.close()
+
+        allergen_query = """
+            SELECT allergen_id, allergen_name
+            FROM Allergens
+            ORDER BY allergen_name
+        """
+        cursor = g.conn.execute(text(allergen_query))
+        allergens = []
+        for result in cursor:
+            allergens.append({
+                "allergen_id": result[0],
+                "allergen_name": result[1]
+            })
+        cursor.close()
+
+        message = None
+
+        if request.method == 'POST':
+            name = request.form.get('name')
+            description = request.form.get('description')
+            restaurant_id = request.form.get('restaurant')
+            price = request.form.get('price')
+            selected_allergens = request.form.getlist('allergens')
+
+            try:
+                insert_dish = """
+                INSERT INTO Dish (name, description)
+                VALUES (:name, :description)
+                RETURNING dish_id
+                """
+                result = g.conn.execute(
+                    text(insert_dish),
+                    {"name": name, "description": description}
+                )
+                dish_id = result.fetchone()[0]
+
+                insert_serves = """
+                INSERT INTO Serves (restaurant_id, dish_id, price)
+                VALUES (:restaurant_id, :dish_id, :price)
+                """
+                g.conn.execute(
+                    text(insert_serves),
+                    {"restaurant_id": restaurant_id, "dish_id": dish_id, "price": price}
+                )
+
+                for allergen_id in selected_allergens:
+                    insert_allergen = """
+                    INSERT INTO Contains (dish_id, allergen_id)
+                    VALUES (:dish_id, :allergen_id)
+                    """
+                    g.conn.execute(
+                        text(insert_allergen),
+                        {"dish_id": dish_id, "allergen_id": allergen_id}
+                    )
+
+                g.conn.commit()
+                return redirect('/dishes')
+            except Exception as e:
+                print(str(e))
+                message = f"Dish Add Failed: {str(e)}"
+        
+        context = dict(
+            restaurants=restaurants,
+            allergens=allergens,
+            message=message
+        )
+        
+        return render_template("add_dish.html", **context)
+    else:
+        return redirect('/login')
 
 @app.route('/logout')
 def logout():
@@ -399,11 +698,11 @@ if __name__ == "__main__":
         This function handles command line parameters.
         Run the server using:
 
-            python server.py
+            python/python3 server.py
 
         Show the help text using:
 
-            python server.py --help
+            python/python3 server.py --help
 
         """
 

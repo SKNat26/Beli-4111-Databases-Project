@@ -124,8 +124,10 @@
 
   <div class="nav-buttons">
     <a href="/">🏠 Home</a>
+    <a href="/dishes">🍕 View Dishes</a>
     <a href="/add_restaurant">➕ Add Restaurant</a>
-    <a href="/add_review">Add Review</a>
+    <a href="/add_review">✍️ Add Review</a>
+    <a href="/add_dish">🍲 Add Dish</a>
     <a href="/logout">Log Out</a>
   </div>
 
@@ -144,13 +146,15 @@
   {% if data %}
   <div class="res-container">
     {% for r in data %}
-      <div class="res">
-        <h2>{{ r.name }}</h2>
-        <p>Address: {{ r.address }}</p>
-        <p>Cuisine: {{ r.cuisine }}</p>
-        <p>Average Rating: {{ r.avg_rating }}</p>
-        <p>Rating Count: {{ r.review_count }}</p>
-      </div>
+      <a href="/restaurant/{{ r.id }}" style="text-decoration: none; color: inherit;">
+        <div class="res">
+          <h2>{{ r.name }}</h2>
+          <p>Address: {{ r.address }}</p>
+          <p>Cuisine: {{ r.cuisine }}</p>
+          <p>Average Rating: {{ r.avg_rating }}</p>
+          <p>Rating Count: {{ r.review_count }}</p>
+        </div>
+      </a>
     {% endfor %}
   </div>
   {% else %}

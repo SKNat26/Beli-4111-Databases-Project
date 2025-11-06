@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ restaurant.name }} - Restaurant Info</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #000000;
+      margin: 40px;
+      color: white;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00bfff;
+      margin-bottom: 10px;
+    }
+
+    .restaurant-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: rgb(48, 47, 47);
+      border-radius: 10px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      border: 2px solid rgba(0, 191, 255, 0.3);
+    }
+
+    .restaurant-info {
+      font-size: 18px;
+      color: #dcdcdc;
+      line-height: 1.8;
+    }
+
+    .rating-display {
+      font-size: 24px;
+      color: #ffd700;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .nav-buttons a {
+      text-decoration: none;
+      color: white;
+      background: #1a1a1a;
+      border: 2px solid #00bfff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-buttons a:hover {
+      background: #00bfff;
+      color: #000;
+      box-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+      transform: translateY(-2px);
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 28px;
+      color: #00bfff;
+      margin: 40px 0 20px 0;
+    }
+
+    .dish-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .dish-card {
+      background: rgb(48, 47, 47);
+      border-radius: 10px;
+      padding: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 1px solid rgba(0, 191, 255, 0.2);
+    }
+
+    .dish-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 15px rgba(0, 191, 255, 0.5);
+    }
+
+    .dish-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(0, 191, 255, 0.3);
+    }
+
+    .dish-name {
+      font-size: 22px;
+      font-weight: bold;
+      color: #00bfff;
+    }
+
+    .dish-price {
+      font-size: 20px;
+      font-weight: bold;
+      color: #4ade80;
+    }
+
+    .dish-description {
+      font-size: 15px;
+      color: #b8b8b8;
+      line-height: 1.5;
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+
+    .allergen-section {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0, 191, 255, 0.2);
+    }
+
+    .allergen-label {
+      font-size: 14px;
+      color: #00bfff;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .allergen-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .allergen-tag {
+      background: #ff6b6b;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .no-allergens {
+      color: #4ade80;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .review-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .review-card {
+      background: rgb(48, 47, 47);
+      border-radius: 10px;
+      padding: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 1px solid rgba(0, 191, 255, 0.2);
+    }
+
+    .review-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 15px rgba(0, 191, 255, 0.5);
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(0, 191, 255, 0.3);
+    }
+
+    .reviewer-name {
+      font-size: 20px;
+      font-weight: bold;
+      color: #00bfff;
+    }
+
+    .rating {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    .review-text {
+      font-size: 16px;
+      color: #dcdcdc;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .timestamp {
+      font-size: 14px;
+      color: #888;
+      font-style: italic;
+      text-align: right;
+    }
+
+    .no-data {
+      text-align: center;
+      color: #ccc;
+      font-size: 18px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h1>{{ restaurant.name }}</h1>
+
+  <div class="restaurant-header">
+    <div class="restaurant-info">
+      <p>📍 {{ restaurant.address }}</p>
+      <p>🍴 Cuisine: {{ restaurant.cuisine }}</p>
+      <div class="rating-display">⭐ {{ restaurant.avg_rating }} / 5 ({{ restaurant.review_count }} reviews)</div>
+    </div>
+  </div>
+
+  <div class="nav-buttons">
+    <a href="/">🏠 Home</a>
+    <a href="/restaurant">🍽️ View Restaurants</a>
+    <a href="/dishes">🍕 View Dishes</a>
+    <a href="/add_restaurant">➕ Add Restaurant</a>
+    <a href="/add_review">✍️ Add Review</a>
+    <a href="/logout">Log Out</a>
+  </div>
+
+  <h2 class="section-title">🍕 Menu</h2>
+  {% if dishes %}
+  <div class="dish-container">
+    {% for dish in dishes %}
+      <div class="dish-card">
+        <div class="dish-header">
+          <div class="dish-name">{{ dish.name }}</div>
+          <div class="dish-price">${{ "%.2f"|format(dish.price) }}</div>
+        </div>
+        {% if dish.description %}
+          <div class="dish-description">{{ dish.description }}</div>
+        {% endif %}
+        <div class="allergen-section">
+          <div class="allergen-label">⚠️ Allergens:</div>
+          {% if dish.allergens %}
+            <div class="allergen-tags">
+              {% for allergen in dish.allergens %}
+                <span class="allergen-tag">{{ allergen }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="no-allergens">✓ No known allergens</div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="no-data">No dishes available for this restaurant.</p>
+  {% endif %}
+
+  <h2 class="section-title">📝 Reviews</h2>
+  {% if reviews %}
+  <div class="review-container">
+    {% for r in reviews %}
+      <div class="review-card">
+        <div class="review-header">
+          <div class="reviewer-name">{{ r.user }}</div>
+          <div class="rating">{{ r.rating }}/5 ⭐</div>
+        </div>
+        <div class="review-text">{{ r.text }}</div>
+        <div class="timestamp">{{ r.timestamp.strftime('%b %d, %Y at %I:%M %p') }}</div>
+      </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="no-data">No reviews yet for this restaurant.</p>
+  {% endif %}
+</body>
+</html>

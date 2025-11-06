@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Add Restaurant</title>
+  <title>Add Dish</title>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;
@@ -43,7 +43,7 @@
     }
 
     form {
-      max-width: 500px;
+      max-width: 600px;
       margin: 0 auto;
       background: rgb(48, 47, 47);
       padding: 30px;
@@ -55,9 +55,13 @@
       display: block;
       font-size: 18px;
       margin-bottom: 8px;
+      color: #00bfff;
     }
 
-    input[type="text"] {
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
       width: 100%;
       padding: 10px;
       border-radius: 5px;
@@ -65,6 +69,41 @@
       margin-bottom: 20px;
       font-size: 16px;
       box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .allergen-checkboxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #1a1a1a;
+      border-radius: 5px;
+    }
+
+    .allergen-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .allergen-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .allergen-item label {
+      margin: 0;
+      font-size: 16px;
+      cursor: pointer;
+      color: #ffffff;
     }
 
     input[type="submit"] {
@@ -85,36 +124,54 @@
       transform: translateY(-2px);
     }
 
-    .message {
-      text-align: center;
-      color: #ff8080;
-      margin-top: 20px;
+    .section-label {
+      font-size: 18px;
+      color: #00bfff;
+      font-weight: bold;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Add a New Restaurant</h1>
+  <h1>Add a New Dish</h1>
 
   <div class="nav-buttons">
     <a href="/">🏠 Home</a>
     <a href="/restaurant">🍽️ View Restaurants</a>
     <a href="/dishes">🍕 View Dishes</a>
     <a href="/add_restaurant">➕ Add Restaurant</a>
-    <a href="/add_review">✍️ Add Review</a>
     <a href="/logout">Log Out</a>
   </div>
 
-  <form method="POST" action="/add_restaurant">
-    <label for="name">Restaurant Name:</label>
+  <form method="POST" action="/add_dish">
+    <label for="name">Dish Name:</label>
     <input type="text" name="name" id="name" required>
 
-    <label for="address">Address:</label>
-    <input type="text" name="address" id="address" required>
+    <label for="description">Description:</label>
+    <textarea name="description" id="description"></textarea>
 
-    <label for="cuisine">Cuisine Type:</label>
-    <input type="text" name="cuisine" id="cuisine">
+    <label for="restaurant">Restaurant:</label>
+    <select name="restaurant" id="restaurant" required>
+      <option value="">Select a restaurant</option>
+      {% for r in restaurants %}
+        <option value="{{ r.restaurant_id }}">{{ r.name }}</option>
+      {% endfor %}
+    </select>
 
-    <input type="submit" value="Add Restaurant">
+    <label for="price">Price ($):</label>
+    <input type="number" name="price" id="price" step="0.01" min="0" required>
+
+    <div class="section-label">Allergens (check all that apply):</div>
+    <div class="allergen-checkboxes">
+      {% for allergen in allergens %}
+        <div class="allergen-item">
+          <input type="checkbox" name="allergens" id="allergen_{{ allergen.allergen_id }}" value="{{ allergen.allergen_id }}">
+          <label for="allergen_{{ allergen.allergen_id }}">{{ allergen.allergen_name }}</label>
+        </div>
+      {% endfor %}
+    </div>
+
+    <input type="submit" value="Add Dish">
   </form>
 
   {% if message %}
